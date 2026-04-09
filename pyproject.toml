@@ -1,0 +1,10 @@
+[project]
+name = "energy-calc"
+version = "0.1.0"
+description = "Web app to provide various energy-related calculators."
+readme = "README.md"
+requires-python = ">=3.14, <4"
+dependencies = [
+    "nicegui>=3.10.0",
+    "psychrolib>=2.5.0",
+]
