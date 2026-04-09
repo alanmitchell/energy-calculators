@@ -12,25 +12,19 @@ def psychrometric():
         ui.button('Back to Home', on_click=lambda: ui.navigate.to('/')).classes('self-start mb-4')
         ui.label('Psychrometric Calculator').classes('text-2xl font-bold mb-4')
 
-        db_input = ui.number(label='Dry-Bulb Temperature (°F)', format='%.1f')
-        rh_input = ui.number(label='Relative Humidity (%)', format='%.1f')
+        db_label = ui.label('Dry-Bulb Temperature: 70 °F')
+        db_input = ui.slider(min=-20, max=100, value=70, step=1).classes('w-[30rem]')
+
+        rh_label = ui.label('Relative Humidity: 50%').classes('mt-4')
+        rh_input = ui.slider(min=0, max=100, value=50, step=1).classes('w-[30rem]')
 
         result_dew = ui.label('')
         result_wb = ui.label('')
         result_abs = ui.label('')
 
         def calculate():
-            if db_input.value is None or rh_input.value is None:
-                ui.notify('Please enter both values.', type='warning')
-                return
-
             t_db = float(db_input.value)
             rh = float(rh_input.value)
-
-            if not (0 <= rh <= 100):
-                ui.notify('Relative humidity must be between 0 and 100.', type='warning')
-                return
-
             rh_frac = rh / 100.0
 
             try:
@@ -43,6 +37,19 @@ def psychrometric():
                 result_wb.text = f'Wet-Bulb Temperature: {t_wb:.1f} °F'
                 result_abs.text = f'Absolute Humidity: {w_grains:.1f} grains/lb  ({w:.5f} lb/lb)'
             except Exception as e:
-                ui.notify(f'Calculation error: {e}', type='negative')
+                result_dew.text = f'Calculation error: {e}'
+                result_wb.text = ''
+                result_abs.text = ''
 
-        ui.button('Calculate', on_click=calculate).classes('mt-4')
+        def on_db_change(e):
+            db_label.set_text(f'Dry-Bulb Temperature: {e.value} °F')
+            calculate()
+
+        def on_rh_change(e):
+            rh_label.set_text(f'Relative Humidity: {e.value}%')
+            calculate()
+
+        db_input.on_value_change(on_db_change)
+        rh_input.on_value_change(on_rh_change)
+
+        calculate()
