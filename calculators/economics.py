@@ -42,6 +42,13 @@ def styled_tooltip(element, text):
 
 @ui.page('/economics')
 def economics():
+    """Page that provides an energy project economics calculator.
+
+    Computes rate of return (IRR), simple payback, net present value, and
+    benefit/cost ratio from user-supplied project cost, savings, escalation,
+    inflation, and discount rate inputs.  Also renders a cumulative cash flow
+    chart.  Results update automatically when any input changes.
+    """
     with ui.column().classes('w-full items-center p-8'):
         ui.button('Back to Home', on_click=lambda: ui.navigate.to('/')).classes('self-start mb-4')
         ui.label('Energy Project Economics Calculator').classes('text-2xl font-bold mb-2')
@@ -66,6 +73,7 @@ def economics():
                 life = ui.slider(min=3, max=50, value=20, step=1).classes('w-full')
 
                 def on_life_change(e):
+                    """Update the project life label and recalculate."""
                     life_label.set_text(f'Project Life: {e.value} years')
                     calculate()
 
@@ -81,6 +89,7 @@ def economics():
                 savings_esc = ui.slider(min=-1.0, max=3.0, value=0.5, step=0.1).classes('w-full')
 
                 def update_esc_label(e):
+                    """Update the escalation label text and recalculate."""
                     v = e.value
                     if v > 0:
                         esc_label.set_text(f'Savings Escalation: {v}% / yr above inflation')
@@ -101,6 +110,7 @@ def economics():
                     general_inflation = ui.slider(min=1.0, max=4.0, value=2.5, step=0.1).classes('w-full')
 
                     def on_infl_change(e):
+                        """Update the inflation rate label and recalculate."""
                         infl_label.set_text(f'General Inflation Rate: {e.value}% / year')
                         calculate()
 
@@ -116,6 +126,7 @@ def economics():
                     discount_rate = ui.slider(min=1.0, max=8.0, value=3.0, step=0.25).classes('w-full')
 
                     def on_disc_change(e):
+                        """Update the discount rate label and recalculate."""
                         disc_label.set_text(f'Discount Rate: {e.value}% / yr above inflation')
                         calculate()
 
@@ -138,6 +149,9 @@ def economics():
                 plot_container = ui.column().classes('w-full')
 
         def calculate():
+            """Read current input values, compute economic metrics, and update
+            the result labels and cumulative cash flow chart.
+            """
             cost = init_cost.value or 0
             years = int(life.value or 20)
             sav1 = savings_yr1.value or 0
