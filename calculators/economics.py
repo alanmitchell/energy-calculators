@@ -179,7 +179,7 @@ def economics():
 
             # Update result labels
             if np.isnan(irr):
-                lbl_ror.text = 'Rate of Return: N/A (no positive return)'
+                lbl_ror.text = 'Rate of Return: N/A'
             else:
                 lbl_ror.text = f'Rate of Return: {irr * 100:.1f}% / year'
             lbl_payback.text = f'Simple Payback: {simple_pb:.1f} years'
