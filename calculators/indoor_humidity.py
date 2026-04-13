@@ -190,7 +190,7 @@ def indoor_humidity():
 
             # Chart: RH vs cfm for several moisture release levels
             chart_container.clear()
-            cfm_range = list(range(5, 305, 5))
+            cfm_range = list(range(5, 205, 5))
             moisture_lines = [3, 5, 8, 12, 20]
 
             with chart_container:
