@@ -2,6 +2,7 @@ from nicegui import ui
 
 import calculators.psychrometric  # noqa: F401 – registers /psychrometric page
 import calculators.economics  # noqa: F401 – registers /economics page
+import calculators.indoor_humidity  # noqa: F401 – registers /indoor_humidity page
 
 
 @ui.page('/')
@@ -26,6 +27,16 @@ def home():
                 ui.label(
                     'Calculate rate of return, payback, net present value, and '
                     'benefit/cost ratio for an energy project.'
+                )
+
+            with ui.card().on('click', lambda: ui.navigate.to('/indoor_humidity')).classes(
+                'w-80 cursor-pointer hover:shadow-lg transition-shadow'
+            ):
+                ui.label('Indoor Humidity Model').classes('text-xl font-semibold')
+                ui.label(
+                    'Calculate indoor relative humidity from outdoor conditions, '
+                    'ventilation rate, and indoor moisture generation rate. '
+                    'Includes a sensitivity table and chart.'
                 )
 
 
