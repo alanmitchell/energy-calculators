@@ -1,8 +1,13 @@
+"""Energy project economics calculator page."""
+
+from typing import TypeVar
+
 import numpy as np
 import numpy_financial as nf
 from matplotlib import pyplot as plt
 import matplotlib.ticker as mtick
 from nicegui import ui
+from nicegui.events import ValueChangeEventArguments
 
 TOOLTIP_ROR = (
     'The project is cost-effective if this Rate of Return exceeds that available '
@@ -30,10 +35,12 @@ TOOLTIP_CHART = (
     'No time-value of money is considered. Savings escalation is included.'
 )
 
-TOOLTIP_CLASSES = 'bg-white text-black text-sm shadow-lg max-w-[400px]'
+TOOLTIP_CLASSES: str = 'bg-white text-black text-sm shadow-lg max-w-[400px]'
+
+_T = TypeVar('_T')
 
 
-def styled_tooltip(element, text):
+def styled_tooltip(element: _T, text: str) -> _T:
     """Add a styled tooltip with white background and black text to an element."""
     with element:
         ui.tooltip(text).classes(TOOLTIP_CLASSES)
@@ -41,7 +48,7 @@ def styled_tooltip(element, text):
 
 
 @ui.page('/economics')
-def economics():
+def economics() -> None:
     """Page that provides an energy project economics calculator.
 
     Computes rate of return (IRR), simple payback, net present value, and
@@ -72,7 +79,7 @@ def economics():
                 life_label = ui.label('Project Life: 20 years').classes('mt-4 mb-0')
                 life = ui.slider(min=3, max=50, value=20, step=1).classes('w-full')
 
-                def on_life_change(e):
+                def on_life_change(e: ValueChangeEventArguments) -> None:
                     """Update the project life label and recalculate."""
                     life_label.set_text(f'Project Life: {e.value} years')
                     calculate()
@@ -88,9 +95,9 @@ def economics():
                 esc_label = ui.label('Savings Escalation: 0.5% / yr above inflation').classes('mt-4 mb-0')
                 savings_esc = ui.slider(min=-1.0, max=3.0, value=0.5, step=0.1).classes('w-full')
 
-                def update_esc_label(e):
+                def update_esc_label(e: ValueChangeEventArguments) -> None:
                     """Update the escalation label text and recalculate."""
-                    v = e.value
+                    v: float = e.value
                     if v > 0:
                         esc_label.set_text(f'Savings Escalation: {v}% / yr above inflation')
                     elif v == 0:
@@ -109,7 +116,7 @@ def economics():
                     infl_label = ui.label('General Inflation Rate: 2.5% / year').classes('mb-0')
                     general_inflation = ui.slider(min=1.0, max=4.0, value=2.5, step=0.1).classes('w-full')
 
-                    def on_infl_change(e):
+                    def on_infl_change(e: ValueChangeEventArguments) -> None:
                         """Update the inflation rate label and recalculate."""
                         infl_label.set_text(f'General Inflation Rate: {e.value}% / year')
                         calculate()
@@ -125,7 +132,7 @@ def economics():
                     disc_label = ui.label('Discount Rate: 3.0% / yr above inflation').classes('mb-0')
                     discount_rate = ui.slider(min=1.0, max=8.0, value=3.0, step=0.25).classes('w-full')
 
-                    def on_disc_change(e):
+                    def on_disc_change(e: ValueChangeEventArguments) -> None:
                         """Update the discount rate label and recalculate."""
                         disc_label.set_text(f'Discount Rate: {e.value}% / yr above inflation')
                         calculate()
@@ -148,34 +155,34 @@ def economics():
                 )
                 plot_container = ui.column().classes('w-full')
 
-        def calculate():
+        def calculate() -> None:
             """Read current input values, compute economic metrics, and update
             the result labels and cumulative cash flow chart.
             """
-            cost = init_cost.value or 0
-            years = int(life.value or 20)
-            sav1 = savings_yr1.value or 0
-            esc = savings_esc.value or 0
-            infl = general_inflation.value or 2.5
-            disc = discount_rate.value or 3.0
+            cost: float = init_cost.value or 0
+            years: int = int(life.value or 20)
+            sav1: float = savings_yr1.value or 0
+            esc: float = savings_esc.value or 0
+            infl: float = general_inflation.value or 2.5
+            disc: float = discount_rate.value or 3.0
 
             if cost <= 0 or sav1 == 0:
                 ui.notify('Please enter a positive cost and non-zero savings.', type='warning')
                 return
 
             # Build cash flow array
-            cash_arr = np.array([-cost] + [0.0] * years)
-            sav_mult = (1.0 + infl / 100.0) * (1.0 + esc / 100.0)
-            savings = np.cumprod(np.array([1.0] + [sav_mult] * (years - 1))) * sav1
+            cash_arr: np.ndarray = np.array([-cost] + [0.0] * years)
+            sav_mult: float = (1.0 + infl / 100.0) * (1.0 + esc / 100.0)
+            savings: np.ndarray = np.cumprod(np.array([1.0] + [sav_mult] * (years - 1))) * sav1
             savings = np.insert(savings, 0, 0.0)
             cash_arr = cash_arr + savings
 
             # Calculations
-            irr = nf.irr(cash_arr)
-            disc_rate_nom = (1 + disc / 100) * (1 + infl / 100) - 1.0
-            npv = nf.npv(disc_rate_nom, cash_arr)
-            bc = (npv + cost) / cost
-            simple_pb = cost / sav1
+            irr: float = nf.irr(cash_arr)
+            disc_rate_nom: float = (1 + disc / 100) * (1 + infl / 100) - 1.0
+            npv: float = nf.npv(disc_rate_nom, cash_arr)
+            bc: float = (npv + cost) / cost
+            simple_pb: float = cost / sav1
 
             # Update result labels
             if np.isnan(irr):
@@ -192,8 +199,8 @@ def economics():
                 mp = ui.matplotlib(figsize=(6, 3.5)).classes('w-full')
                 with mp.figure as fig:
                     ax = fig.gca()
-                    yr = range(0, years + 1)
-                    cum_cash = np.cumsum(cash_arr)
+                    yr: range = range(0, years + 1)
+                    cum_cash: np.ndarray = np.cumsum(cash_arr)
                     ax.plot(yr, cum_cash)
                     ax.grid(True)
                     ax.set_xlabel('Year', fontsize=12)
