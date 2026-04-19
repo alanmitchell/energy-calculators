@@ -1,3 +1,9 @@
+"""Entry point for the Energy Calculators web application.
+
+Imports each calculator module to register its page route, then starts the
+NiceGUI server on the home page.
+"""
+
 from nicegui import ui
 
 import calculators.psychrometric  # noqa: F401 – registers /psychrometric page
@@ -7,6 +13,7 @@ import calculators.indoor_humidity  # noqa: F401 – registers /indoor_humidity 
 
 @ui.page('/')
 def home() -> None:
+    """Render the home page with cards linking to each available calculator."""
     with ui.column().classes('w-full items-center p-8'):
         ui.label('Energy Calculators').classes('text-3xl font-bold mb-6')
 
