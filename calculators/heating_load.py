@@ -121,7 +121,7 @@ def heating_load() -> None:
 
                     with ui.element('tr'):
                         with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Efficiency (%)')
+                            ui.label('Space Heating Efficiency (%)')
                         for _name, _unit, default_eff, min_eff, max_eff in _FUELS:
                             with ui.element('td').classes('p-2 border'):
                                 eff: ui.number = ui.number(
