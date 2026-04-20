@@ -60,6 +60,12 @@ def heating_load() -> None:
 
         floor_area: float = floor_area_input.value or 0.0
         floor_area_row.set_visibility(fuels['Electricity']['annual_use'] > 0)
+        any_fuel_checked: bool = any(
+            chk.value
+            for checks in (dhw_checks, dry_checks, cook_checks)
+            for chk in checks
+        )
+        occupants_row.set_visibility(any_fuel_checked)
         # TODO: implement heating load calculation using city_data and fuels
 
     with ui.column().classes('w-full items-center p-8'):
@@ -132,6 +138,16 @@ def heating_load() -> None:
                                     on_change=lambda: calculate(),
                                 ).classes('w-28')
                                 eff_inputs.append(eff)
+
+        with ui.row().classes('items-center gap-2') as occupants_row:
+            occupants_input: ui.number = ui.number(
+                label='Number of Occupants',
+                value=3,
+                min=1,
+                format='%.0f',
+                on_change=lambda: calculate(),
+            ).classes('w-60')
+        occupants_row.set_visibility(False)
 
         with ui.row().classes('items-center gap-2') as floor_area_row:
             floor_area_input: ui.number = ui.number(
