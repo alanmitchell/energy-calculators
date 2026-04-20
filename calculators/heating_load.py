@@ -71,6 +71,7 @@ def heating_load() -> None:
     with ui.column().classes('w-full items-center p-8'):
         ui.button('Back to Home', on_click=lambda: ui.navigate.to('/')).classes('self-start mb-4')
         ui.label('Determine Design Heating Load').classes('text-2xl font-bold mb-4')
+        ui.label('Placeholder text below title.').classes('max-w-2xl mb-6')
 
         city_select: ui.select = ui.select(
             options=list(city_name_to_id.keys()),
@@ -78,6 +79,8 @@ def heating_load() -> None:
             with_input=True,
             on_change=lambda: calculate(),
         ).classes('w-80 mb-6')
+
+        ui.label('Placeholder text above fuel table.').classes('max-w-2xl mb-2')
 
         with ui.element('div').classes('overflow-x-auto w-full mb-6'):
             with ui.element('table').classes('border-collapse'):
