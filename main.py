@@ -9,6 +9,7 @@ from nicegui import ui
 import calculators.psychrometric  # noqa: F401 – registers /psychrometric page
 import calculators.economics  # noqa: F401 – registers /economics page
 import calculators.indoor_humidity  # noqa: F401 – registers /indoor_humidity page
+import calculators.heating_load  # noqa: F401 – registers /heating_load page
 
 
 @ui.page('/')
@@ -36,6 +37,15 @@ def home() -> None:
                     'ventilation rate, and indoor moisture generation rate. '
                     'Includes a sensitivity table and chart.'
                 )
+            with ui.card().on('click', lambda: ui.navigate.to('/heating_load')).classes(
+                'w-80 cursor-pointer hover:shadow-lg transition-shadow'
+            ):
+                ui.label('Determine Design Heating Load').classes('text-xl font-semibold')
+                ui.label(
+                    'Estimate the design space heating load of a residential building '
+                    'based on annual fuel usage.'
+                )
+
             with ui.card().on('click', lambda: ui.navigate.to('/psychrometric')).classes(
                 'w-80 cursor-pointer hover:shadow-lg transition-shadow'
             ):
