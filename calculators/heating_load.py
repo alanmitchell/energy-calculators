@@ -16,6 +16,8 @@ _FUELS: list[tuple[str, str, float, float, float]] = [
     ('Electricity', 'kWh', 100.0, 90.0, 350.0),
 ]
 
+_FUEL_OPTIONS: list[str] = [name for name, *_ in _FUELS] + ['Other']
+
 
 @ui.page('/heating_load')
 def heating_load() -> None:
@@ -31,9 +33,6 @@ def heating_load() -> None:
     city_name_to_id: dict[str, int] = {city['label']: city['id'] for city in cities_data}
 
     use_inputs: list[ui.number] = []
-    dhw_checks: list[ui.checkbox] = []
-    dry_checks: list[ui.checkbox] = []
-    cook_checks: list[ui.checkbox] = []
     eff_inputs: list[ui.number] = []
 
     def calculate() -> None:
@@ -52,20 +51,11 @@ def heating_load() -> None:
         for i, (name, _unit, _def, _min, _max) in enumerate(_FUELS):
             fuels[name] = {
                 'annual_use': use_inputs[i].value or 0.0,
-                'dhw': dhw_checks[i].value,
-                'drying': dry_checks[i].value,
-                'cooking': cook_checks[i].value,
                 'efficiency': eff_inputs[i].value or 0.0,
             }
 
         floor_area: float = floor_area_input.value or 0.0
         floor_area_row.set_visibility(fuels['Electricity']['annual_use'] > 0)
-        any_fuel_checked: bool = any(
-            chk.value
-            for checks in (dhw_checks, dry_checks, cook_checks)
-            for chk in checks
-        )
-        occupants_row.set_visibility(any_fuel_checked)
         # TODO: implement heating load calculation using city_data and fuels
 
     with ui.column().classes('w-full items-center p-8'):
@@ -82,57 +72,30 @@ def heating_load() -> None:
 
         ui.label('Placeholder text above fuel table.').classes('max-w-2xl mb-2')
 
-        with ui.element('div').classes('overflow-x-auto w-full mb-6'):
+        with ui.element('div').classes('overflow-x-auto w-full mb-6 flex justify-center'):
             with ui.element('table').classes('border-collapse'):
                 with ui.element('thead'):
                     with ui.element('tr'):
-                        ui.element('th').classes('p-2 border bg-gray-100')
-                        for name, unit, _def, _min, _max in _FUELS:
-                            with ui.element('th').classes('p-2 border bg-gray-100 text-center min-w-36'):
-                                ui.label(name).classes('font-semibold block')
-                                ui.label(f'({unit})').classes('text-sm text-gray-500 block')
+                        with ui.element('th').classes('px-2 py-1 border bg-gray-100 text-left whitespace-nowrap'):
+                            ui.label('Fuel').classes('font-semibold')
+                        with ui.element('th').classes('px-2 py-1 border bg-gray-100 text-center'):
+                            ui.label('Annual Fuel Use').classes('font-semibold')
+                        with ui.element('th').classes('px-2 py-1 border bg-gray-100 text-center'):
+                            ui.label('Space Heating').classes('font-semibold block')
+                            ui.label('Efficiency (%)').classes('font-semibold block')
 
                 with ui.element('tbody'):
-                    with ui.element('tr'):
-                        with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Annual Fuel Use')
-                        for _name, _unit, _def, _min, _max in _FUELS:
-                            with ui.element('td').classes('p-2 border'):
+                    for name, unit, default_eff, min_eff, max_eff in _FUELS:
+                        with ui.element('tr'):
+                            with ui.element('td').classes('px-2 py-1 border font-medium whitespace-nowrap'):
+                                ui.label(f'{name} ({unit})')
+                            with ui.element('td').classes('px-2 py-1 border'):
                                 inp: ui.number = ui.number(
                                     value=None, format='%.1f',
                                     on_change=lambda: calculate(),
                                 ).classes('w-28')
                                 use_inputs.append(inp)
-
-                    with ui.element('tr'):
-                        with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Also Used for Domestic Hot Water?')
-                        for _ in _FUELS:
-                            with ui.element('td').classes('p-2 border text-center'):
-                                chk: ui.checkbox = ui.checkbox(on_change=lambda: calculate())
-                                dhw_checks.append(chk)
-
-                    with ui.element('tr'):
-                        with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Also Used for Clothes Drying?')
-                        for _ in _FUELS:
-                            with ui.element('td').classes('p-2 border text-center'):
-                                chk = ui.checkbox(on_change=lambda: calculate())
-                                dry_checks.append(chk)
-
-                    with ui.element('tr'):
-                        with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Also Used for Cooking?')
-                        for _ in _FUELS:
-                            with ui.element('td').classes('p-2 border text-center'):
-                                chk = ui.checkbox(on_change=lambda: calculate())
-                                cook_checks.append(chk)
-
-                    with ui.element('tr'):
-                        with ui.element('td').classes('p-2 border font-medium whitespace-nowrap'):
-                            ui.label('Space Heating Efficiency (%)')
-                        for _name, _unit, default_eff, min_eff, max_eff in _FUELS:
-                            with ui.element('td').classes('p-2 border'):
+                            with ui.element('td').classes('px-2 py-1 border'):
                                 eff: ui.number = ui.number(
                                     value=default_eff,
                                     min=min_eff,
@@ -142,7 +105,27 @@ def heating_load() -> None:
                                 ).classes('w-28')
                                 eff_inputs.append(eff)
 
-        with ui.row().classes('items-center gap-2') as occupants_row:
+        with ui.column().classes('gap-4 mb-6'):
+            dhw_select: ui.select = ui.select(
+                options=_FUEL_OPTIONS,
+                label='Fuel used for Domestic Hot Water',
+                with_input=True,
+                on_change=lambda: calculate(),
+            ).classes('w-80')
+            dry_select: ui.select = ui.select(
+                options=_FUEL_OPTIONS,
+                label='Fuel used for Clothes Drying',
+                with_input=True,
+                on_change=lambda: calculate(),
+            ).classes('w-80')
+            cook_select: ui.select = ui.select(
+                options=_FUEL_OPTIONS,
+                label='Fuel used for Cooking',
+                with_input=True,
+                on_change=lambda: calculate(),
+            ).classes('w-80')
+
+        with ui.row().classes('items-center gap-2'):
             occupants_input: ui.number = ui.number(
                 label='Number of Occupants',
                 value=3,
@@ -150,7 +133,6 @@ def heating_load() -> None:
                 format='%.0f',
                 on_change=lambda: calculate(),
             ).classes('w-60')
-        occupants_row.set_visibility(False)
 
         with ui.row().classes('items-center gap-2') as floor_area_row:
             floor_area_input: ui.number = ui.number(
